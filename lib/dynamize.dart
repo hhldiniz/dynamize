@@ -16,28 +16,40 @@ class Table {
 
   Table(this.name);
 
-  // Future create() {
-  //
-  // }
+  Future create() async {
+    var jsonResponse =
+        jsonDecode(await _dynamoDbService.createTableRequest(name));
+  }
 
   Future<TableDescription> describe() async {
     var jsonResponse =
         jsonDecode(await _dynamoDbService.describeTableRequest(name));
 
+    List<AttributeDefinition> attributeDefinitions = [];
+    List<KeySchema> keySchemas = [];
+
+    jsonResponse["Table"]["AttributeDefinitions"].forEach((val) {
+      attributeDefinitions
+          .add(AttributeDefinition(val["AttributeName"], val["AttributeType"]));
+    });
+
+    jsonResponse["Table"]["KeySchema"].forEach((val) =>
+        keySchemas.add(KeySchema(val["KeyType"], val["AttributeName"])));
+
     return TableDescription(
-        jsonResponse["AttributeDefinitions"].map((attributeDefinition) =>
-            AttributeDefinition(attributeDefinition["AttributeName"],
-                attributeDefinition["AttributeType"])).toList(),
+        attributeDefinitions,
         ProvisionedThroughput(
-            jsonResponse["ProvisionedThroughput"]["NumberOfDecreasesToday"],
-            jsonResponse["ProvisionedThroughput"]["WriteCapacityUnits"],
-            jsonResponse["ProvisionedThroughput"]["ReadCapacityUnits"]),
-        jsonResponse["TableSizeBytes"],
-        jsonResponse["TableName"],
-        jsonResponse["TableStatus"],
-        jsonResponse["KeySchema"].map((keySchema) =>
-            KeySchema(keySchema["KeyType"], keySchema["AttributeName"])).toList(),
-        jsonResponse["ItemCount"],
-        jsonResponse["CreationDateTime"]);
+            jsonResponse["Table"]["ProvisionedThroughput"]
+                ["NumberOfDecreasesToday"],
+            jsonResponse["Table"]["ProvisionedThroughput"]
+                ["WriteCapacityUnits"],
+            jsonResponse["Table"]["ProvisionedThroughput"]
+                ["ReadCapacityUnits"]),
+        jsonResponse["Table"]["TableSizeBytes"],
+        jsonResponse["Table"]["TableName"],
+        jsonResponse["Table"]["TableStatus"],
+        keySchemas,
+        jsonResponse["Table"]["ItemCount"],
+        jsonResponse["Table"]["CreationDateTime"]);
   }
 }
