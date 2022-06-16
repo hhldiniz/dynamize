@@ -1,8 +1,8 @@
 class ProvisionedThroughput {
-  int numberOfDecreasesToday;
+  int? numberOfDecreasesToday;
   int writeCapacityUnits;
   int readCapacityUnits;
 
-  ProvisionedThroughput(this.numberOfDecreasesToday, this.writeCapacityUnits,
-      this.readCapacityUnits);
+  ProvisionedThroughput(this.writeCapacityUnits,
+      this.readCapacityUnits, {this.numberOfDecreasesToday});
 }

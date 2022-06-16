@@ -18,7 +18,7 @@ class Table {
 
   Future create() async {
     var jsonResponse =
-        jsonDecode(await _dynamoDbService.createTableRequest(name));
+        jsonDecode(await _dynamoDbService.createTableRequest(name, []));
   }
 
   Future<TableDescription> describe() async {
