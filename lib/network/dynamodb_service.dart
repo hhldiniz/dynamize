@@ -34,7 +34,7 @@ class DynamoDBService {
       List<AttributeDefinition> attributeDefinitions,
       List<KeySchema> keySchema,
       ProvisionedThroughput provisionedThroughput,
-      {GlobalSecondaryIndex? globalSecondaryIndexes,
+      {List<GlobalSecondaryIndex>? globalSecondaryIndexes,
       List<Tag>? tags}) async {
     var headers = {
       'X-Amz-Target': 'DynamoDB_20120810.CreateTable',
@@ -74,8 +74,20 @@ class DynamoDBService {
           provisionedThroughput.numberOfDecreasesToday ?? 0;
     }
 
-    if(globalSecondaryIndexes != null) {
+    if (globalSecondaryIndexes != null) {
+      params["GlobalSecondaryIndex"] =
+          globalSecondaryIndexes.map((GlobalSecondaryIndex gsi) => {
+                "IndexName": gsi.indexName,
+                "KeySchema": gsi.keySchema.map((key) => {
+                      "AttributeName": key.attributeName,
+                      "KeyType": key.keyType
+                    }),
+                "ProjectionType": gsi.projection.projectionType
+              });
+    }
 
+    if (tags != null) {
+      params["Tags"] = tags.map((tag) => {"Key": tag.key, "Value": tag.value});
     }
 
     request.body = jsonEncode(params);

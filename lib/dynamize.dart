@@ -3,10 +3,13 @@ library dynamize;
 import 'dart:convert';
 
 import 'package:dynamize/model/attribute_definition.dart';
+import 'package:dynamize/model/global_secondary_index.dart';
 import 'package:dynamize/model/key_schema.dart';
 import 'package:dynamize/model/provisioned_throughput.dart';
 import 'package:dynamize/model/table_description.dart';
 import 'package:dynamize/network/dynamodb_service.dart';
+
+import 'model/tag.dart';
 
 /// A class that represents a DynamoDB table and it's operations.
 class Table {
@@ -16,9 +19,15 @@ class Table {
 
   Table(this.name);
 
-  Future create() async {
-    var jsonResponse =
-        jsonDecode(await _dynamoDbService.createTableRequest(name, []));
+  Future create(List<AttributeDefinition> attributeDefinitions,
+      List<KeySchema> keySchema, ProvisionedThroughput provisionedThroughput,
+      {List<GlobalSecondaryIndex>? globalSecondaryIndex,
+      List<Tag>? tags}) async {
+    var jsonResponse = jsonDecode(await _dynamoDbService.createTableRequest(
+        name, attributeDefinitions, keySchema, provisionedThroughput,
+        globalSecondaryIndexes: globalSecondaryIndex, tags: tags));
+
+    return jsonResponse;
   }
 
   Future<TableDescription> describe() async {
@@ -40,11 +49,10 @@ class Table {
         attributeDefinitions,
         ProvisionedThroughput(
             jsonResponse["Table"]["ProvisionedThroughput"]
-                ["NumberOfDecreasesToday"],
-            jsonResponse["Table"]["ProvisionedThroughput"]
                 ["WriteCapacityUnits"],
-            jsonResponse["Table"]["ProvisionedThroughput"]
-                ["ReadCapacityUnits"]),
+            jsonResponse["Table"]["ProvisionedThroughput"]["ReadCapacityUnits"],
+            numberOfDecreasesToday: jsonResponse["Table"]
+                ["ProvisionedThroughput"]["NumberOfDecreasesToday"]),
         jsonResponse["Table"]["TableSizeBytes"],
         jsonResponse["Table"]["TableName"],
         jsonResponse["Table"]["TableStatus"],
